@@ -18,15 +18,14 @@ export default function AdminPage() {
   const [error, setError] = useState('')
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(false)
-  const [gaId, setGaId] = useState('')
 
-  const handleLogin = () => {
-    const correctPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD
-    if (!correctPassword) {
-      setError('Admin password not configured.')
-      return
-    }
-    if (password === correctPassword) {
+  const handleLogin = async () => {
+    const res = await fetch('/api/admin-auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    })
+    if (res.ok) {
       setAuthed(true)
       setError('')
     } else {
@@ -36,7 +35,6 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (!authed) return
-    setGaId(process.env.NEXT_PUBLIC_GA_ID || '')
     setLoading(true)
     fetch('/api/analytics')
       .then((r) => r.json())
@@ -44,9 +42,7 @@ export default function AdminPage() {
         setStats(data)
         setLoading(false)
       })
-      .catch(() => {
-        setLoading(false)
-      })
+      .catch(() => setLoading(false))
   }, [authed])
 
   if (!authed) {
@@ -83,19 +79,17 @@ export default function AdminPage() {
             <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
             <p className="text-gray-500 text-sm mt-1">Koshuta AV — site statistics</p>
           </div>
-          {gaId && (
-            <a
-              href={`https://analytics.google.com/analytics/web/#/p${gaId.replace('G-', '')}/reports/`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
-            >
-              Open Google Analytics
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </a>
-          )}
+          <a
+            href="https://analytics.google.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+          >
+            Open Google Analytics
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
         </div>
 
         {loading && (
@@ -107,25 +101,22 @@ export default function AdminPage() {
         {!loading && !stats && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
             <p className="text-amber-800 font-semibold mb-2">Analytics API not configured yet</p>
-            <p className="text-amber-700 text-sm">
-              To see live data here, set up Google Analytics 4 and add your credentials to <code className="bg-amber-100 px-1 rounded">.env.local</code>.
+            <p className="text-amber-700 text-sm mb-4">
+              Set up Google Analytics 4 and add credentials to Vercel environment variables.
             </p>
-            {gaId && (
-              <a
-                href={`https://analytics.google.com`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-block bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
-              >
-                Open Google Analytics Dashboard
-              </a>
-            )}
+            <a
+              href="https://analytics.google.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Open Google Analytics Dashboard
+            </a>
           </div>
         )}
 
         {!loading && stats && (
           <>
-            {/* Overview cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               {[
                 { label: 'Active Users (now)', value: stats.activeUsers },
@@ -139,9 +130,7 @@ export default function AdminPage() {
                 </div>
               ))}
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Top pages */}
               <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
                 <h2 className="font-bold text-gray-900 mb-4">Top Pages (30 days)</h2>
                 <ul className="space-y-3">
@@ -153,8 +142,6 @@ export default function AdminPage() {
                   ))}
                 </ul>
               </div>
-
-              {/* Traffic sources */}
               <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
                 <h2 className="font-bold text-gray-900 mb-4">Traffic Sources (30 days)</h2>
                 <ul className="space-y-3">
