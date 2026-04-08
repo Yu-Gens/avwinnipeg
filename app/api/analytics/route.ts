@@ -37,7 +37,7 @@ export async function GET() {
         dimensions: [{ name: 'pagePath' }],
         metrics: [{ name: 'screenPageViews' }],
         orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
-        limit: BigInt(8),
+        limit: 8,
       }),
       // Top traffic sources, last 30 days
       client.runReport({
@@ -46,7 +46,7 @@ export async function GET() {
         dimensions: [{ name: 'sessionDefaultChannelGroup' }],
         metrics: [{ name: 'sessions' }],
         orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
-        limit: BigInt(6),
+        limit: 6,
       }),
       // Real-time active users
       client.runRealtimeReport({
