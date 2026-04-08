@@ -1,9 +1,5 @@
 import { NextResponse } from 'next/server'
 
-// This route calls the Google Analytics Data API (GA4 Reporting API)
-// Requires: GOOGLE_APPLICATION_CREDENTIALS or GA4_CLIENT_EMAIL + GA4_PRIVATE_KEY in .env.local
-// and GA4_PROPERTY_ID in .env.local
-
 export async function GET() {
   const propertyId = process.env.GA4_PROPERTY_ID
 
@@ -12,43 +8,36 @@ export async function GET() {
   }
 
   try {
-    // Dynamic import to avoid crashing if package not installed
     const { BetaAnalyticsDataClient } = await import('@google-analytics/data')
-
     const client = new BetaAnalyticsDataClient()
 
     const [report7d, report30d, topPages, topSources, realtime] = await Promise.all([
-      // Sessions + pageviews, last 7 days
       client.runReport({
         property: `properties/${propertyId}`,
         dateRanges: [{ startDate: '7daysAgo', endDate: 'today' }],
         metrics: [{ name: 'sessions' }, { name: 'screenPageViews' }],
       }),
-      // Sessions + pageviews, last 30 days
       client.runReport({
         property: `properties/${propertyId}`,
         dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
         metrics: [{ name: 'sessions' }, { name: 'screenPageViews' }],
       }),
-      // Top pages, last 30 days
       client.runReport({
         property: `properties/${propertyId}`,
         dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
         dimensions: [{ name: 'pagePath' }],
         metrics: [{ name: 'screenPageViews' }],
         orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
-        limit: 8,
+        limit: 8 as unknown as number,
       }),
-      // Top traffic sources, last 30 days
       client.runReport({
         property: `properties/${propertyId}`,
         dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
         dimensions: [{ name: 'sessionDefaultChannelGroup' }],
         metrics: [{ name: 'sessions' }],
         orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
-        limit: 6,
+        limit: 6 as unknown as number,
       }),
-      // Real-time active users
       client.runRealtimeReport({
         property: `properties/${propertyId}`,
         metrics: [{ name: 'activeUsers' }],
