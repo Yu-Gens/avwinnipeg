@@ -20,16 +20,20 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false)
 
   const handleLogin = async () => {
-    const res = await fetch('/api/admin-auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
-    })
-    if (res.ok) {
-      setAuthed(true)
-      setError('')
-    } else {
-      setError('Incorrect password.')
+    try {
+      const res = await fetch('/api/admin-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      })
+      if (res.ok) {
+        setAuthed(true)
+        setError('')
+      } else {
+        setError('Incorrect password.')
+      }
+    } catch {
+      setError('Connection error. Please try again.')
     }
   }
 
